@@ -13,19 +13,19 @@ namespace Pulumi.GoogleCloudStaticWebsite
     public partial class Website : Pulumi.ComponentResource
     {
         /// <summary>
-        /// Blah.
+        /// The CDN URL of the website.
         /// </summary>
         [Output("cdnURL")]
         public Output<string?> CdnURL { get; private set; } = null!;
 
         /// <summary>
-        /// Fixme.
+        /// The custom-domain URL of the website.
         /// </summary>
         [Output("customDomainURL")]
         public Output<string?> CustomDomainURL { get; private set; } = null!;
 
         /// <summary>
-        /// Blah
+        /// The direct URL of the website.
         /// </summary>
         [Output("originURL")]
         public Output<string> OriginURL { get; private set; } = null!;
@@ -59,25 +59,37 @@ namespace Pulumi.GoogleCloudStaticWebsite
     public sealed class WebsiteArgs : Pulumi.ResourceArgs
     {
         /// <summary>
-        /// default 404 page
+        /// The domain of the website.
+        /// </summary>
+        [Input("domain")]
+        public Input<string>? Domain { get; set; }
+
+        /// <summary>
+        /// The default error page for the website. Defaults to error.html.
         /// </summary>
         [Input("errorDocument")]
         public Input<string>? ErrorDocument { get; set; }
 
         /// <summary>
-        /// The default document for the site. Defaults to index.html
+        /// The default document for the site. Defaults to index.html.
         /// </summary>
         [Input("indexDocument")]
         public Input<string>? IndexDocument { get; set; }
 
         /// <summary>
-        /// The root directory containing the website's contents.
+        /// The root directory containing contents of the built website contents.
         /// </summary>
         [Input("sitePath", required: true)]
         public Input<string> SitePath { get; set; } = null!;
 
         /// <summary>
-        /// Provision CloudFront CDN to serve content.
+        /// The subdomain of the website.
+        /// </summary>
+        [Input("subdomain")]
+        public Input<string>? Subdomain { get; set; }
+
+        /// <summary>
+        /// Whether to provision a Google Cloud CDN to serve website content.
         /// </summary>
         [Input("withCDN")]
         public Input<bool>? WithCDN { get; set; }

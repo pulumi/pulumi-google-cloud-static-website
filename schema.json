@@ -6,19 +6,27 @@
             "inputProperties": {
                 "withCDN": {
                     "type": "boolean",
-                    "description": "Provision CloudFront CDN to serve content."
+                    "description": "Whether to provision a Google Cloud CDN to serve website content."
                 },
                 "sitePath": {
                     "type": "string",
-                    "description": "The root directory containing the website's contents."
+                    "description": "The root directory containing contents of the built website contents."
                 },
                 "indexDocument": {
                     "type": "string",
-                    "description": "The default document for the site. Defaults to index.html"
+                    "description": "The default document for the site. Defaults to index.html."
                 },
                 "errorDocument": {
                     "type": "string",
-                    "description": "default 404 page"
+                    "description": "The default error page for the website. Defaults to error.html."
+                },
+                "domain": {
+                    "type": "string",
+                    "description": "The domain of the website."
+                },
+                "subdomain": {
+                    "type": "string",
+                    "description": "The subdomain of the website."
                 }
             },
             "requiredInputs": [
@@ -27,15 +35,15 @@
             "properties": {
                 "originURL": {
                     "type": "string",
-                    "description": "Blah"
+                    "description": "The direct URL of the website."
                 },
                 "cdnURL": {
                     "type": "string",
-                    "description": "Blah."
+                    "description": "The CDN URL of the website."
                 },
                 "customDomainURL" : {
                     "type": "string",
-                    "description": "Fixme."
+                    "description": "The custom-domain URL of the website."
                 }
             },
             "required": [

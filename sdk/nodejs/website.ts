@@ -20,15 +20,15 @@ export class Website extends pulumi.ComponentResource {
     }
 
     /**
-     * Blah.
+     * The CDN URL of the website.
      */
     public /*out*/ readonly cdnURL!: pulumi.Output<string | undefined>;
     /**
-     * Fixme.
+     * The custom-domain URL of the website.
      */
     public /*out*/ readonly customDomainURL!: pulumi.Output<string | undefined>;
     /**
-     * Blah
+     * The direct URL of the website.
      */
     public /*out*/ readonly originURL!: pulumi.Output<string>;
 
@@ -46,9 +46,11 @@ export class Website extends pulumi.ComponentResource {
             if ((!args || args.sitePath === undefined) && !opts.urn) {
                 throw new Error("Missing required property 'sitePath'");
             }
+            resourceInputs["domain"] = args ? args.domain : undefined;
             resourceInputs["errorDocument"] = args ? args.errorDocument : undefined;
             resourceInputs["indexDocument"] = args ? args.indexDocument : undefined;
             resourceInputs["sitePath"] = args ? args.sitePath : undefined;
+            resourceInputs["subdomain"] = args ? args.subdomain : undefined;
             resourceInputs["withCDN"] = args ? args.withCDN : undefined;
             resourceInputs["cdnURL"] = undefined /*out*/;
             resourceInputs["customDomainURL"] = undefined /*out*/;
@@ -68,19 +70,27 @@ export class Website extends pulumi.ComponentResource {
  */
 export interface WebsiteArgs {
     /**
-     * default 404 page
+     * The domain of the website.
+     */
+    domain?: pulumi.Input<string>;
+    /**
+     * The default error page for the website. Defaults to error.html.
      */
     errorDocument?: pulumi.Input<string>;
     /**
-     * The default document for the site. Defaults to index.html
+     * The default document for the site. Defaults to index.html.
      */
     indexDocument?: pulumi.Input<string>;
     /**
-     * The root directory containing the website's contents.
+     * The root directory containing contents of the built website contents.
      */
     sitePath: pulumi.Input<string>;
     /**
-     * Provision CloudFront CDN to serve content.
+     * The subdomain of the website.
+     */
+    subdomain?: pulumi.Input<string>;
+    /**
+     * Whether to provision a Google Cloud CDN to serve website content.
      */
     withCDN?: pulumi.Input<boolean>;
 }

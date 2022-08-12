@@ -14,11 +14,11 @@ import (
 type Website struct {
 	pulumi.ResourceState
 
-	// Blah.
+	// The CDN URL of the website.
 	CdnURL pulumi.StringPtrOutput `pulumi:"cdnURL"`
-	// Fixme.
+	// The custom-domain URL of the website.
 	CustomDomainURL pulumi.StringPtrOutput `pulumi:"customDomainURL"`
-	// Blah
+	// The direct URL of the website.
 	OriginURL pulumi.StringOutput `pulumi:"originURL"`
 }
 
@@ -41,25 +41,33 @@ func NewWebsite(ctx *pulumi.Context,
 }
 
 type websiteArgs struct {
-	// default 404 page
+	// The domain of the website.
+	Domain *string `pulumi:"domain"`
+	// The default error page for the website. Defaults to error.html.
 	ErrorDocument *string `pulumi:"errorDocument"`
-	// The default document for the site. Defaults to index.html
+	// The default document for the site. Defaults to index.html.
 	IndexDocument *string `pulumi:"indexDocument"`
-	// The root directory containing the website's contents.
+	// The root directory containing contents of the built website contents.
 	SitePath string `pulumi:"sitePath"`
-	// Provision CloudFront CDN to serve content.
+	// The subdomain of the website.
+	Subdomain *string `pulumi:"subdomain"`
+	// Whether to provision a Google Cloud CDN to serve website content.
 	WithCDN *bool `pulumi:"withCDN"`
 }
 
 // The set of arguments for constructing a Website resource.
 type WebsiteArgs struct {
-	// default 404 page
+	// The domain of the website.
+	Domain pulumi.StringPtrInput
+	// The default error page for the website. Defaults to error.html.
 	ErrorDocument pulumi.StringPtrInput
-	// The default document for the site. Defaults to index.html
+	// The default document for the site. Defaults to index.html.
 	IndexDocument pulumi.StringPtrInput
-	// The root directory containing the website's contents.
+	// The root directory containing contents of the built website contents.
 	SitePath pulumi.StringInput
-	// Provision CloudFront CDN to serve content.
+	// The subdomain of the website.
+	Subdomain pulumi.StringPtrInput
+	// Whether to provision a Google Cloud CDN to serve website content.
 	WithCDN pulumi.BoolPtrInput
 }
 

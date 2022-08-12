@@ -17,32 +17,16 @@ import * as gcp from "@pulumi/gcp";
 import * as mime from "mime";
 import * as glob from "glob";
 
-import { local } from "@pulumi/command";
-
 export interface WebsiteArgs {
-    /**
-     * The .
-     */
     sitePath: string;
-    
-    /**
-     * The .
-     */
     indexDocument: string;
-
-    /**
-     * The .
-     */
     errorDocument: string;
-
-    /**
-     * The .
-     */
     withCDN: boolean;
+    domain?: string;
+    subdomain?: string;
 }
 
 export class Website extends pulumi.ComponentResource {
-    // public readonly resourceGroupName: pulumi.Output<string>;
     public readonly originURL: pulumi.Output<string>
     public readonly cdnURL?: pulumi.Output<string>;
     public readonly customDomainURL?: pulumi.Output<string>;
@@ -51,6 +35,8 @@ export class Website extends pulumi.ComponentResource {
     private indexDocument?: string;
     private errorDocument?: string;
     private withCDN: boolean;
+    private domain?: string;
+    private subdomain?: string;
 
     constructor(name: string, args: WebsiteArgs, opts?: pulumi.ComponentResourceOptions) {
         super("google-cloud-static-website:index:Website", name, args, opts);
@@ -58,17 +44,19 @@ export class Website extends pulumi.ComponentResource {
         this.sitePath = args.sitePath;
         this.indexDocument = args.indexDocument || "index.html";
         this.errorDocument = args.errorDocument || "error.html";
-        this.withCDN = args.withCDN;
+        this.withCDN = args.withCDN !== false;
+        this.domain = args.domain;
+        this.subdomain = args.subdomain;
 
         // Create a storage bucket for the website.
         const bucket = new gcp.storage.Bucket("my-bucket", {
             location: "US",
             forceDestroy: true,
             website: {
-                mainPageSuffix: "index.html",
-                notFoundPage: "error.html",
+                mainPageSuffix: this.indexDocument,
+                notFoundPage: this.errorDocument,
             },
-        });
+        }, { parent: this });
 
         // Make bucket objects publicly accessible by default.
         const binding = new gcp.storage.BucketIAMBinding("my-bucket-iam-binding", {
@@ -77,71 +65,104 @@ export class Website extends pulumi.ComponentResource {
             members: [
                 "allUsers",
             ],
-        });
+        }, { parent: this });
 
         // Upload the files of the website as managed Pulumi resources.
-        const siteRoot = "./site";
-        const files = glob.sync(`${siteRoot}/**/*`, { nodir: true });
+        const sitePath = this.sitePath;
+        const files = glob.sync(`${sitePath}/**/*`, { nodir: true });
         files.map(file => {
-            const relativePath = file.replace(`${siteRoot}/`, "");
+            const relativePath = file.replace(`${sitePath}/`, "");
             new gcp.storage.BucketObject(relativePath, {
                 bucket: bucket.name,
                 name: relativePath,
                 source: new pulumi.asset.FileAsset(file),
                 contentType: mime.getType(relativePath) || "text/plain",
-            });
+            }, { parent: this });
         });
 
         this.originURL = pulumi.interpolate`https://storage.googleapis.com/${bucket.name}/index.html`;
 
-
         // Create a profile for the CDN.
         if (this.withCDN) {
             
-            // Add what's called a "backend bucket"?
+            // Define the bucket as a backend bucket.
             const backendBucket = new gcp.compute.BackendBucket("my-backend-bucket", {
                 bucketName: bucket.name,
                 enableCdn: true,
-            });
+            }, { parent: this });
 
-            const ip = new gcp.compute.GlobalAddress("address", {
-                addressType: "EXTERNAL",
-            });
+            // Create a global public IP address.
+            const ip = new gcp.compute.GlobalAddress("address", {}, { parent: this });
 
+            // Map the IP address to the backend bucket.
             const map = new gcp.compute.URLMap("map", {
                 defaultService: backendBucket.selfLink,
-            });
+            }, { parent: this });
 
-            const proxy = new gcp.compute.TargetHttpProxy("proxy", {
+            // Create an HTTP proxy for public access.
+            const httpProxy = new gcp.compute.TargetHttpProxy("http-proxy", {
                 urlMap: map.selfLink,
-            });
+            }, { parent: this });
 
-            // Add a load balancer.
-            const lb = new gcp.compute.GlobalForwardingRule("forwarding-rule", {
-                loadBalancingScheme: "EXTERNAL",
+            // Create an HTTP forwarding rule.
+            const httpForwardingRule = new gcp.compute.GlobalForwardingRule("http-forwarding-rule", {
                 ipAddress: ip.address,
                 ipProtocol: "TCP",
                 portRange: "80",
-                target: proxy.selfLink,
-            });
-
+                target: httpProxy.selfLink,
+            }, { parent: this });
+            
+            // Export the IP address as the CDN endpoint.
             this.cdnURL = pulumi.interpolate`http://${ip.address}`;
 
-            if (false) {
-                
+            if (this.domain && this.subdomain) {
 
-                // this.customDomainURL = cname.fqdn.apply(fqdn => `https://${fqdn.split(".").filter(s => s !== "").join(".")}`);
+                // Google names its managed domain names by replacing dots with dashes.
+                const zone = gcp.dns.getManagedZoneOutput({ name: this.domain.replace(/\./g, "-") });
+
+                const recordSet = new gcp.dns.RecordSet("record-set", {
+                    name: pulumi.interpolate`${this.subdomain}.${zone.dnsName}`,
+                    type: "A",
+                    managedZone: zone.name,
+                    rrdatas: [
+                        ip.address,
+                    ],
+                }, { parent: this });
+
+                const cert = new gcp.compute.ManagedSslCertificate("cert", {
+                    managed: {
+                        domains: [
+                            recordSet.name,
+                        ],
+                    },
+                }, { parent: this });
+
+                const httpsProxy = new gcp.compute.TargetHttpsProxy("https-proxy", {
+                    urlMap: map.selfLink,
+                    sslCertificates: [
+                        cert.selfLink,
+                    ],
+                }, { parent: this });
+
+                const httpsForwardingRule = new gcp.compute.GlobalForwardingRule("https-forwarding-rule", {
+                    ipAddress: ip.address,
+                    ipProtocol: "TCP",
+                    portRange: "443",
+                    target: httpsProxy.selfLink,
+                }, { parent: this });
+
+                // Export the URL of the custom domain.
+                this.customDomainURL = zone.dnsName.apply(name => {
+                    return `https://${this.subdomain}.${name.split(".").filter(s => s !== "").join(".")}`;
+                });
             }
         }
-
-        // Also export the website's resource group name as a convenience for filtering in the Azure portal.
-        // this.resourceGroupName = resourceGroup.name;
-
+        
+        // Register all outputs.
         this.registerOutputs({
             originURL: this.originURL,
             cdnURL: this.cdnURL,
-            // customDomainURL: this.customDomainURL,
-            // resourceGroupName: this.resourceGroupName,
+            customDomainURL: this.customDomainURL,
         });
     }
 }

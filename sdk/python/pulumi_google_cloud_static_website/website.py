@@ -14,21 +14,29 @@ __all__ = ['WebsiteArgs', 'Website']
 class WebsiteArgs:
     def __init__(__self__, *,
                  site_path: pulumi.Input[str],
+                 domain: Optional[pulumi.Input[str]] = None,
                  error_document: Optional[pulumi.Input[str]] = None,
                  index_document: Optional[pulumi.Input[str]] = None,
+                 subdomain: Optional[pulumi.Input[str]] = None,
                  with_cdn: Optional[pulumi.Input[bool]] = None):
         """
         The set of arguments for constructing a Website resource.
-        :param pulumi.Input[str] site_path: The root directory containing the website's contents.
-        :param pulumi.Input[str] error_document: default 404 page
-        :param pulumi.Input[str] index_document: The default document for the site. Defaults to index.html
-        :param pulumi.Input[bool] with_cdn: Provision CloudFront CDN to serve content.
+        :param pulumi.Input[str] site_path: The root directory containing contents of the built website contents.
+        :param pulumi.Input[str] domain: The domain of the website.
+        :param pulumi.Input[str] error_document: The default error page for the website. Defaults to error.html.
+        :param pulumi.Input[str] index_document: The default document for the site. Defaults to index.html.
+        :param pulumi.Input[str] subdomain: The subdomain of the website.
+        :param pulumi.Input[bool] with_cdn: Whether to provision a Google Cloud CDN to serve website content.
         """
         pulumi.set(__self__, "site_path", site_path)
+        if domain is not None:
+            pulumi.set(__self__, "domain", domain)
         if error_document is not None:
             pulumi.set(__self__, "error_document", error_document)
         if index_document is not None:
             pulumi.set(__self__, "index_document", index_document)
+        if subdomain is not None:
+            pulumi.set(__self__, "subdomain", subdomain)
         if with_cdn is not None:
             pulumi.set(__self__, "with_cdn", with_cdn)
 
@@ -36,7 +44,7 @@ class WebsiteArgs:
     @pulumi.getter(name="sitePath")
     def site_path(self) -> pulumi.Input[str]:
         """
-        The root directory containing the website's contents.
+        The root directory containing contents of the built website contents.
         """
         return pulumi.get(self, "site_path")
 
@@ -45,10 +53,22 @@ class WebsiteArgs:
         pulumi.set(self, "site_path", value)
 
     @property
+    @pulumi.getter
+    def domain(self) -> Optional[pulumi.Input[str]]:
+        """
+        The domain of the website.
+        """
+        return pulumi.get(self, "domain")
+
+    @domain.setter
+    def domain(self, value: Optional[pulumi.Input[str]]):
+        pulumi.set(self, "domain", value)
+
+    @property
     @pulumi.getter(name="errorDocument")
     def error_document(self) -> Optional[pulumi.Input[str]]:
         """
-        default 404 page
+        The default error page for the website. Defaults to error.html.
         """
         return pulumi.get(self, "error_document")
 
@@ -60,7 +80,7 @@ class WebsiteArgs:
     @pulumi.getter(name="indexDocument")
     def index_document(self) -> Optional[pulumi.Input[str]]:
         """
-        The default document for the site. Defaults to index.html
+        The default document for the site. Defaults to index.html.
         """
         return pulumi.get(self, "index_document")
 
@@ -69,10 +89,22 @@ class WebsiteArgs:
         pulumi.set(self, "index_document", value)
 
     @property
+    @pulumi.getter
+    def subdomain(self) -> Optional[pulumi.Input[str]]:
+        """
+        The subdomain of the website.
+        """
+        return pulumi.get(self, "subdomain")
+
+    @subdomain.setter
+    def subdomain(self, value: Optional[pulumi.Input[str]]):
+        pulumi.set(self, "subdomain", value)
+
+    @property
     @pulumi.getter(name="withCDN")
     def with_cdn(self) -> Optional[pulumi.Input[bool]]:
         """
-        Provision CloudFront CDN to serve content.
+        Whether to provision a Google Cloud CDN to serve website content.
         """
         return pulumi.get(self, "with_cdn")
 
@@ -86,19 +118,23 @@ class Website(pulumi.ComponentResource):
     def __init__(__self__,
                  resource_name: str,
                  opts: Optional[pulumi.ResourceOptions] = None,
+                 domain: Optional[pulumi.Input[str]] = None,
                  error_document: Optional[pulumi.Input[str]] = None,
                  index_document: Optional[pulumi.Input[str]] = None,
                  site_path: Optional[pulumi.Input[str]] = None,
+                 subdomain: Optional[pulumi.Input[str]] = None,
                  with_cdn: Optional[pulumi.Input[bool]] = None,
                  __props__=None):
         """
         Create a Website resource with the given unique name, props, and options.
         :param str resource_name: The name of the resource.
         :param pulumi.ResourceOptions opts: Options for the resource.
-        :param pulumi.Input[str] error_document: default 404 page
-        :param pulumi.Input[str] index_document: The default document for the site. Defaults to index.html
-        :param pulumi.Input[str] site_path: The root directory containing the website's contents.
-        :param pulumi.Input[bool] with_cdn: Provision CloudFront CDN to serve content.
+        :param pulumi.Input[str] domain: The domain of the website.
+        :param pulumi.Input[str] error_document: The default error page for the website. Defaults to error.html.
+        :param pulumi.Input[str] index_document: The default document for the site. Defaults to index.html.
+        :param pulumi.Input[str] site_path: The root directory containing contents of the built website contents.
+        :param pulumi.Input[str] subdomain: The subdomain of the website.
+        :param pulumi.Input[bool] with_cdn: Whether to provision a Google Cloud CDN to serve website content.
         """
         ...
     @overload
@@ -123,9 +159,11 @@ class Website(pulumi.ComponentResource):
     def _internal_init(__self__,
                  resource_name: str,
                  opts: Optional[pulumi.ResourceOptions] = None,
+                 domain: Optional[pulumi.Input[str]] = None,
                  error_document: Optional[pulumi.Input[str]] = None,
                  index_document: Optional[pulumi.Input[str]] = None,
                  site_path: Optional[pulumi.Input[str]] = None,
+                 subdomain: Optional[pulumi.Input[str]] = None,
                  with_cdn: Optional[pulumi.Input[bool]] = None,
                  __props__=None):
         if opts is None:
@@ -141,11 +179,13 @@ class Website(pulumi.ComponentResource):
                 raise TypeError('__props__ is only valid when passed in combination with a valid opts.id to get an existing resource')
             __props__ = WebsiteArgs.__new__(WebsiteArgs)
 
+            __props__.__dict__["domain"] = domain
             __props__.__dict__["error_document"] = error_document
             __props__.__dict__["index_document"] = index_document
             if site_path is None and not opts.urn:
                 raise TypeError("Missing required property 'site_path'")
             __props__.__dict__["site_path"] = site_path
+            __props__.__dict__["subdomain"] = subdomain
             __props__.__dict__["with_cdn"] = with_cdn
             __props__.__dict__["cdn_url"] = None
             __props__.__dict__["custom_domain_url"] = None
@@ -161,7 +201,7 @@ class Website(pulumi.ComponentResource):
     @pulumi.getter(name="cdnURL")
     def cdn_url(self) -> pulumi.Output[Optional[str]]:
         """
-        Blah.
+        The CDN URL of the website.
         """
         return pulumi.get(self, "cdn_url")
 
@@ -169,7 +209,7 @@ class Website(pulumi.ComponentResource):
     @pulumi.getter(name="customDomainURL")
     def custom_domain_url(self) -> pulumi.Output[Optional[str]]:
         """
-        Fixme.
+        The custom-domain URL of the website.
         """
         return pulumi.get(self, "custom_domain_url")
 
@@ -177,7 +217,7 @@ class Website(pulumi.ComponentResource):
     @pulumi.getter(name="originURL")
     def origin_url(self) -> pulumi.Output[str]:
         """
-        Blah
+        The direct URL of the website.
         """
         return pulumi.get(self, "origin_url")
 

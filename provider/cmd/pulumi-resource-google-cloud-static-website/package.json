@@ -2,7 +2,6 @@
     "version": "${VERSION}",
     "bin": "bin/index.js",
     "dependencies": {
-        "@pulumi/command": "^0.4.1",
         "@pulumi/gcp": "^6.32.0",
         "@pulumi/pulumi": "^3.37.2",
         "glob": "^8.0.3",

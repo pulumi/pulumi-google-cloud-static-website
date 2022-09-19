@@ -1,0 +1,12 @@
+name: gcp-static-site
+runtime: yaml
+description: Provisions a static website using the google cloud static website component
+resources:
+  site:
+    type: google-cloud-static-website:index:Website
+    properties:
+      sitePath: ./website/build
+      withCDN: true
+outputs:
+  url: "${site.originURL}"
+  cdnURL: "${site.cdnURL}"

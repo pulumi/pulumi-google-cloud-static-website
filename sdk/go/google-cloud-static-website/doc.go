@@ -1,3 +1,3 @@
-// Package google-cloud-static-website exports types, functions, subpackages for provisioning google-cloud-static-website resources.
+// A component to deploy static websites to Google Cloud
 //
 package googlecloudstaticwebsite

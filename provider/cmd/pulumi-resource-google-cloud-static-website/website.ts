@@ -48,8 +48,6 @@ export class Website extends pulumi.ComponentResource {
         this.domain = args.domain;
         this.subdomain = args.subdomain;
 
-        pulumi.log.info("args: " + JSON.stringify(args, null, 4))
-
         // Create a storage bucket for the website.
         const bucket = new gcp.storage.Bucket("my-bucket", {
             location: "US",

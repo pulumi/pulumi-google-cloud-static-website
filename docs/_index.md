@@ -1,8 +1,16 @@
-# pulumi-google-cloud-static-website
+---
+title: Google Cloud Static Website
+meta_desc: Provides an overview of the Google Cloud Static Website component.
+layout: overview
+---
 
 This component makes it easy to deploy a static website to Google Cloud using any of the supported Pulumi programming languages.
 
 ## Usage
+
+{{< chooser language "typescript,yaml" >}}
+
+{{% choosable language typescript %}}
 
 ```typescript
 import { Website } from "@pulumi/google-cloud-static-website";
@@ -13,6 +21,9 @@ const site = new Website("site", {
 
 export const { originURL } = site;
 ```
+
+{{% /choosable %}}
+{{% choosable language yaml %}}
 
 ```yaml
 name: my-website
@@ -28,6 +39,9 @@ resources:
 outputs:
   originURL: ${site.originURL}
 ```
+
+{{% /choosable %}}
+{{< /chooser >}}
 
 ## Input Properties
 

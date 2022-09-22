@@ -1,4 +1,5 @@
 {
   "resource": true,
-  "name": "google-cloud-static-website"
+  "name": "google-cloud-static-website",
+  "version": "0.0.3"
 }

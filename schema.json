@@ -1,5 +1,16 @@
 {
     "name": "google-cloud-static-website",
+    "version": "v0.0.3",
+    "description": "A component to deploy static websites to Google Cloud",
+    "keywords": [
+        "pulumi",
+        "category/cloud",
+        "kind/component",
+        "web"
+    ],
+    "homepage": "https://pulumi.com",
+    "repository": "https://github.com/pulumi/pulumi-google-cloud-static-website",
+    "publisher": "Pulumi",
     "resources": {
         "google-cloud-static-website:index:Website": {
             "isComponent": true,

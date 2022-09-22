@@ -44,7 +44,7 @@ export class Website extends pulumi.ComponentResource {
         this.sitePath = args.sitePath;
         this.indexDocument = args.indexDocument || "index.html";
         this.errorDocument = args.errorDocument || "error.html";
-        this.withCDN = args.withCDN !== false;
+        this.withCDN = args.withCDN;
         this.domain = args.domain;
         this.subdomain = args.subdomain;
 
@@ -80,7 +80,7 @@ export class Website extends pulumi.ComponentResource {
             }, { parent: this });
         });
 
-        this.originURL = pulumi.interpolate`https://storage.googleapis.com/${bucket.name}/index.html`;
+        this.originURL = pulumi.interpolate`https://storage.googleapis.com/${bucket.name}/${this.indexDocument}`;
 
         // Create a profile for the CDN.
         if (this.withCDN) {
@@ -115,13 +115,18 @@ export class Website extends pulumi.ComponentResource {
             // Export the IP address as the CDN endpoint.
             this.cdnURL = pulumi.interpolate`http://${ip.address}`;
 
-            if (this.domain && this.subdomain) {
+            if (this.domain) {
 
                 // Google names its managed domain names by replacing dots with dashes.
                 const zone = gcp.dns.getManagedZoneOutput({ name: this.domain.replace(/\./g, "-") });
+            
+                let fqdn = zone.dnsName;
+                if (this.subdomain) {
+                    fqdn = pulumi.interpolate`${this.subdomain}.${zone.dnsName}`;
+                }
 
                 const recordSet = new gcp.dns.RecordSet("record-set", {
-                    name: pulumi.interpolate`${this.subdomain}.${zone.dnsName}`,
+                    name: fqdn,
                     type: "A",
                     managedZone: zone.name,
                     rrdatas: [
@@ -132,7 +137,7 @@ export class Website extends pulumi.ComponentResource {
                 const cert = new gcp.compute.ManagedSslCertificate("cert", {
                     managed: {
                         domains: [
-                            recordSet.name,
+                            fqdn,
                         ],
                     },
                 }, { parent: this });
@@ -153,7 +158,7 @@ export class Website extends pulumi.ComponentResource {
 
                 // Export the URL of the custom domain.
                 this.customDomainURL = zone.dnsName.apply(name => {
-                    return `https://${this.subdomain}.${name.split(".").filter(s => s !== "").join(".")}`;
+                    return `https://${this.subdomain ? `${this.subdomain}.` : ""}${name.split(".").filter(s => s !== "").join(".")}`;
                 });
             }
         }

@@ -80,7 +80,7 @@ export class Website extends pulumi.ComponentResource {
             }, { parent: this });
         });
 
-        this.originURL = pulumi.interpolate`https://storage.googleapis.com/${bucket.name}/${this.indexDocument || "index.html"}`;
+        this.originURL = pulumi.interpolate`https://storage.googleapis.com/${bucket.name}/${this.indexDocument}`;
 
         // Create a profile for the CDN.
         if (this.withCDN) {
